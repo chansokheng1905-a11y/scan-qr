@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QR MASTER PRO — លោកគ្រូ ចាន់ សុខហេង</title>
+    <title>QR MASTER PRO — លោកគ្រូ ចាន់ សុខហេង (Cloud Synced)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Kantumruy Pro & Plus Jakarta Sans -->
@@ -16,6 +16,10 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <!-- QRCode.js for Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <script>
         tailwind.config = {
@@ -50,9 +54,6 @@
         .gold-glow {
             box-shadow: 0 0 25px rgba(212, 175, 55, 0.25);
         }
-        .gold-border-gradient {
-            border-image: linear-gradient(135deg, #d4af37, #856114, #d4af37) 1;
-        }
         @keyframes scanLaser {
             0% { top: 6%; opacity: 0.8; }
             50% { top: 90%; opacity: 1; }
@@ -68,7 +69,6 @@
             animation: scanLaser 2.2s infinite ease-in-out;
             pointer-events: none;
         }
-        /* Custom Gold Slider */
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             height: 18px;
@@ -93,9 +93,15 @@
                     </div>
                 </div>
                 <div>
-                    <h1 class="text-sm font-extrabold tracking-wider bg-gradient-to-r from-gold-300 via-amber-200 to-gold-500 bg-clip-text text-transparent uppercase">
-                        QR Master Pro
-                    </h1>
+                    <div class="flex items-center gap-1.5">
+                        <h1 class="text-sm font-extrabold tracking-wider bg-gradient-to-r from-gold-300 via-amber-200 to-gold-500 bg-clip-text text-transparent uppercase">
+                            QR Master Pro
+                        </h1>
+                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.2 rounded-full">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Cloud Sync
+                        </span>
+                    </div>
                     <p class="text-[11px] text-slate-400">
                         កម្មសិទ្ធិ៖ <span class="text-gold-400 font-bold">លោកគ្រូ ចាន់ សុខហេង</span>
                     </p>
@@ -119,16 +125,12 @@
 
         <!-- TAB 1: SCANNER VIEW -->
         <div id="viewScanner" class="flex-1 flex flex-col space-y-3.5">
-            
-            <!-- Viewport & Camera Frame -->
             <div class="relative w-full aspect-square rounded-[2rem] overflow-hidden bg-black border-2 border-gold-500/40 shadow-2xl gold-glow flex items-center justify-center" id="scannerContainer">
                 <video id="videoPreview" playsinline class="w-full h-full object-cover transition-transform duration-200"></video>
                 <canvas id="qrCanvas" class="hidden"></canvas>
-
-                <!-- Laser scan effect -->
                 <div id="laserLine" class="laser-line hidden"></div>
 
-                <!-- Gold Viewfinder Corners -->
+                <!-- Gold Corners -->
                 <div class="absolute inset-8 pointer-events-none border border-gold-500/20 rounded-2xl flex flex-col justify-between p-1">
                     <div class="flex justify-between">
                         <div class="w-6 h-6 border-t-2 border-l-2 border-gold-400 rounded-tl-lg"></div>
@@ -140,7 +142,7 @@
                     </div>
                 </div>
 
-                <!-- Floating Quick Zoom Presets Inside Camera (1x, 2x, 3x) -->
+                <!-- Floating Quick Zoom Presets -->
                 <div id="quickZoomBar" class="absolute top-4 inset-x-0 mx-auto w-fit flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-gold-500/30 z-20 hidden">
                     <button onclick="setZoomLevel(1.0)" id="zoom1xBtn" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-gold-400 bg-gold-500/20 border border-gold-500/40 transition">1x</button>
                     <button onclick="setZoomLevel(2.0)" id="zoom2xBtn" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-slate-300 hover:text-gold-300 transition">2x</button>
@@ -148,7 +150,7 @@
                     <button onclick="setZoomLevel(4.0)" id="zoom4xBtn" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-slate-300 hover:text-gold-300 transition">4x</button>
                 </div>
 
-                <!-- Offline/Camera Off Placeholder -->
+                <!-- Offline Placeholder -->
                 <div id="cameraOffNotice" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-obsidian-950/90 space-y-3 z-10">
                     <div class="w-16 h-16 rounded-2xl bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400 text-2xl">
                         <i class="fa-solid fa-video-slash"></i>
@@ -163,7 +165,7 @@
                 </div>
             </div>
 
-            <!-- Zoom Slider Control Bar -->
+            <!-- Zoom Slider Bar -->
             <div id="zoomSliderContainer" class="bg-obsidian-900/80 border border-gold-500/20 px-4 py-2.5 rounded-2xl flex items-center gap-3">
                 <span class="text-xs text-gold-400 shrink-0 font-bold flex items-center gap-1">
                     <i class="fa-solid fa-magnifying-glass-plus"></i> Zoom:
@@ -172,7 +174,7 @@
                 <span id="zoomLevelDisplay" class="text-xs font-mono font-bold text-gold-300 shrink-0 w-10 text-right">1.0x</span>
             </div>
 
-            <!-- In-Scan Camera Floating Controls -->
+            <!-- Camera Controls -->
             <div class="grid grid-cols-3 gap-2 text-xs">
                 <button onclick="toggleCameraPower()" id="camPowerBtn" class="py-2.5 px-3 rounded-2xl border border-gold-500/30 bg-obsidian-900 text-slate-200 hover:border-gold-400 flex items-center justify-center gap-1.5 transition">
                     <i id="camPowerIcon" class="fa-solid fa-power-off text-rose-500"></i>
@@ -197,13 +199,12 @@
                     <i class="fa-solid fa-image"></i>
                 </div>
                 <h3 class="text-sm font-bold text-white">ជ្រើសរើសរូបភាពពីទូរសព្ទ (Gallery)</h3>
-                <p class="text-xs text-slate-400 mt-1 max-w-xs">ចុចទីនេះដើម្បីជ្រើសរូបថត ឬរូប Screenshot ដែលមានកូដ QR មកស្កេនភ្លាមៗ</p>
+                <p class="text-xs text-slate-400 mt-1 max-w-xs">ចុចទីនេះដើម្បីជ្រើសរូបថត ឬរូប Screenshot ដែលមានកូដ QR មកស្កេន</p>
                 <span class="mt-4 px-4 py-2 rounded-xl bg-gold-500/20 text-gold-300 border border-gold-500/40 text-xs font-semibold">
                     <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i> ជ្រើសរូបភាព
                 </span>
             </div>
 
-            <!-- Preview Selected Image -->
             <div id="galleryPreviewBox" class="hidden glass p-3 rounded-2xl border border-gold-500/20 text-center space-y-2">
                 <img id="galleryImg" src="" class="max-h-48 mx-auto rounded-xl object-contain border border-gold-500/30">
                 <p id="galleryStatus" class="text-xs text-gold-400 font-medium"></p>
@@ -217,7 +218,7 @@
                     <i class="fa-solid fa-wand-magic-sparkles text-gold-400"></i> បង្កើត QR Code ផ្ទាល់ខ្លួន
                 </h3>
                 <div>
-                    <label class="block text-slate-400 mb-1">បញ្ចូលអត្ថបទ, តំណភ្ជាប់ (URL) ឬព័ត៌មាន៖</label>
+                    <label class="block text-slate-400 mb-1">បញ្ចូលអត្ថបទ ឬតំណភ្ជាប់ (URL)៖</label>
                     <textarea id="genInput" rows="3" placeholder="https://... ឬអត្ថបទអ្វីមួយ..." class="w-full p-3 rounded-xl border border-gold-500/30 bg-obsidian-950 text-white focus:outline-none focus:ring-1 focus:ring-gold-400"></textarea>
                 </div>
                 <button onclick="handleGenerateQR()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-gold-500 via-amber-400 to-gold-600 text-black font-bold shadow-md shadow-gold-500/20 active:scale-95 transition flex items-center justify-center gap-1.5">
@@ -225,7 +226,6 @@
                 </button>
             </div>
 
-            <!-- Output Box -->
             <div id="genResultBox" class="hidden bg-obsidian-900/90 border border-gold-500/30 p-5 rounded-3xl text-center space-y-3.5">
                 <div id="qrcodeCanvas" class="w-48 h-48 mx-auto bg-white p-2.5 rounded-2xl shadow-xl flex items-center justify-center"></div>
                 <button onclick="downloadGeneratedQR()" class="px-4 py-2 rounded-xl bg-gold-500/20 text-gold-300 hover:bg-gold-500/30 border border-gold-500/40 text-xs font-bold transition flex items-center justify-center gap-1.5 mx-auto">
@@ -234,16 +234,16 @@
             </div>
         </div>
 
-        <!-- TAB 4: HISTORY VIEW -->
+        <!-- TAB 4: HISTORY VIEW (CLOUD SYNCHRONIZED) -->
         <div id="viewHistory" class="flex-1 flex flex-col space-y-3 hidden">
             <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-400 font-medium">ប្រវត្តិកូដដែលបានស្កេន៖ <strong id="historyCount" class="text-gold-400 font-bold">0</strong></span>
-                <button onclick="clearHistory()" class="text-rose-400 hover:text-rose-300"><i class="fa-regular fa-trash-can mr-1"></i>លុបទាំងអស់</button>
+                <span class="text-slate-400 font-medium">ប្រវត្តិកូដស្កេនលើ Cloud៖ <strong id="historyCount" class="text-gold-400 font-bold">0</strong></span>
+                <button onclick="clearCloudHistory()" class="text-rose-400 hover:text-rose-300"><i class="fa-regular fa-trash-can mr-1"></i>លុបទាំងអស់</button>
             </div>
             <div id="historyList" class="space-y-2 overflow-y-auto max-h-[50vh] pr-1"></div>
             <div id="historyEmpty" class="text-center py-12 text-slate-500 text-xs">
-                <i class="fa-solid fa-clock-rotate-left text-3xl text-slate-600 mb-2"></i>
-                <p>មិនទាន់មានប្រវត្តិស្កេននៅឡើយទេ</p>
+                <i class="fa-solid fa-cloud-arrow-down text-3xl text-slate-600 mb-2"></i>
+                <p>មិនទាន់មានប្រវត្តិស្កេនលើ Cloud នៅឡើយទេ</p>
             </div>
         </div>
 
@@ -265,9 +265,9 @@
                 <span class="text-[10px] font-bold">បង្កើត QR</span>
             </button>
             <button onclick="switchTab('history')" id="navHistory" class="py-1.5 text-slate-400 hover:text-gold-300 flex flex-col items-center gap-1 transition relative">
-                <i class="fa-solid fa-clock-rotate-left text-base"></i>
-                <span class="text-[10px] font-bold">ប្រវត្តិ</span>
-                <span id="historyBadge" class="absolute top-1 right-5 w-2 h-2 rounded-full bg-gold-400 hidden"></span>
+                <i class="fa-solid fa-cloud text-base"></i>
+                <span class="text-[10px] font-bold">ប្រវត្តិ (Sync)</span>
+                <span id="historyBadge" class="absolute top-1 right-5 w-2 h-2 rounded-full bg-emerald-400 hidden"></span>
             </button>
         </div>
     </nav>
@@ -283,7 +283,6 @@
                 <button onclick="closeResultModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <!-- Content Display -->
             <div class="space-y-2 text-xs">
                 <div class="bg-obsidian-950 p-3.5 rounded-2xl border border-slate-800 break-all max-h-48 overflow-y-auto font-mono text-slate-200" id="resultTextDisplay"></div>
                 <div id="paymentDecodedCard" class="hidden bg-emerald-950/40 border border-emerald-500/30 p-3 rounded-2xl text-[11px] space-y-1 text-emerald-300">
@@ -291,7 +290,6 @@
                 </div>
             </div>
 
-            <!-- Actions -->
             <div class="flex gap-2 pt-1 text-xs">
                 <button onclick="copyResultText()" id="copyBtn" class="flex-1 py-2.5 rounded-xl border border-gold-500/40 text-gold-300 hover:bg-gold-500/10 font-bold flex items-center justify-center gap-1.5 transition">
                     <i class="fa-regular fa-copy"></i> Copy
@@ -304,10 +302,26 @@
     </div>
 
     <script>
+        // Connect to Chan Sokheng's Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDBTmY6YKLmpQ4mqAZm96P39IYtR4uQvtE",
+            authDomain: "my-planner-app-e9576.firebaseapp.com",
+            projectId: "my-planner-app-e9576",
+            storageBucket: "my-planner-app-e9576.firebasestorage.app",
+            messagingSenderId: "820137960838",
+            appId: "1:820137960838:web:df39f02662e2aff521b807",
+            measurementId: "G-9LCSDVH7C5"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
         // State variables
         let videoStream = null;
         let isScanning = false;
-        let facingMode = 'environment'; // back camera
+        let facingMode = 'environment';
         let soundEnabled = true;
         let vibEnabled = true;
         let torchActive = false;
@@ -315,7 +329,7 @@
         let currentZoom = 1.0;
         let videoTrack = null;
         let lastResult = '';
-        let scanHistory = JSON.parse(localStorage.getItem('qrmaster_history') || '[]');
+        let cloudHistory = [];
 
         // Audio Context for Beep
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -334,6 +348,80 @@
             } catch(e) {}
         }
 
+        window.addEventListener('DOMContentLoaded', () => {
+            listenToCloudHistory();
+        });
+
+        // ================= CLOUD FIRESTORE REAL-TIME SYNC =================
+        function listenToCloudHistory() {
+            db.collection('scanned_qr_history').orderBy('timestamp', 'desc').limit(50)
+                .onSnapshot(snapshot => {
+                    cloudHistory = [];
+                    snapshot.forEach(doc => {
+                        cloudHistory.push({ id: doc.id, ...doc.data() });
+                    });
+                    renderHistory();
+                }, err => {
+                    console.error("Firestore error:", err);
+                });
+        }
+
+        async function saveToCloudHistory(text) {
+            try {
+                await db.collection('scanned_qr_history').add({
+                    text: text,
+                    date: new Date().toISOString().slice(0, 10),
+                    time: new Date().toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit' }),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch(err) {
+                console.error("Cloud save error:", err);
+            }
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            const empty = document.getElementById('historyEmpty');
+            document.getElementById('historyCount').innerText = cloudHistory.length;
+            list.innerHTML = '';
+
+            if (cloudHistory.length === 0) {
+                empty.classList.remove('hidden');
+                document.getElementById('historyBadge').classList.add('hidden');
+                return;
+            } else {
+                empty.classList.add('hidden');
+                document.getElementById('historyBadge').classList.remove('hidden');
+            }
+
+            cloudHistory.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = "bg-obsidian-900/90 border border-gold-500/20 p-3 rounded-2xl flex items-center justify-between gap-3 text-xs";
+                card.innerHTML = `
+                    <div class="flex-1 truncate cursor-pointer" onclick="showResultModal('${item.text.replace(/'/g, "\\'")}')">
+                        <p class="text-white font-mono truncate font-medium">${item.text}</p>
+                        <span class="text-[10px] text-slate-500"><i class="fa-solid fa-cloud text-emerald-400 mr-1"></i>${item.date} • ${item.time || ''}</span>
+                    </div>
+                    <button onclick="deleteCloudItem('${item.id}')" class="text-slate-500 hover:text-rose-400 p-1"><i class="fa-regular fa-trash-can"></i></button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        async function deleteCloudItem(docId) {
+            await db.collection('scanned_qr_history').doc(docId).delete();
+        }
+
+        async function clearCloudHistory() {
+            if (!confirm("តើលោកគ្រូចង់លុបប្រវត្តិស្កេនទាំងអស់ចេញពី Cloud មែនទេ?")) return;
+            const batch = db.batch();
+            cloudHistory.forEach(item => {
+                const ref = db.collection('scanned_qr_history').doc(item.id);
+                batch.delete(ref);
+            });
+            await batch.commit();
+        }
+
         // ================= CAMERA & ZOOM SYSTEM =================
         async function startCamera() {
             try {
@@ -344,7 +432,7 @@
                         facingMode: { ideal: facingMode },
                         width: { ideal: 1280 },
                         height: { ideal: 720 },
-                        zoom: true // Request hardware zoom permission
+                        zoom: true
                     }
                 };
 
@@ -360,21 +448,19 @@
                 document.getElementById('camPowerText').innerText = 'បិទកាមេរ៉ា';
                 document.getElementById('camPowerIcon').className = 'fa-solid fa-power-off text-rose-500';
 
-                // Check camera hardware zoom capabilities
                 setupCameraZoom();
 
                 isScanning = true;
                 requestAnimationFrame(scanFrame);
             } catch (err) {
                 console.error("Camera access error:", err);
-                alert("មិនអាចបើកកាមេរ៉ាបានទេ! សូមប្រាកដថាលោកគ្រូបានបើកវេបសាយនេះលើ HTTPS (GitHub Pages) និងបានអនុញ្ញាតសិទ្ធិ Camera លើ Browser។");
+                alert("មិនអាចបើកកាមេរ៉ាបានទេ! សូមប្រាកដថាលោកគ្រូបានបើក Link នេះលើប្រព័ន្ធ HTTPS (GitHub Pages) និងបានអនុញ្ញាតសិទ្ធិ Camera។");
             }
         }
 
         function setupCameraZoom() {
             if (!videoTrack) return;
             const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
-
             const zoomInput = document.getElementById('zoomRangeInput');
             if (capabilities.zoom) {
                 zoomInput.min = capabilities.zoom.min;
@@ -383,7 +469,6 @@
                 zoomInput.value = capabilities.zoom.min;
                 currentZoom = capabilities.zoom.min;
             } else {
-                // Fallback to CSS digital zoom
                 zoomInput.min = 1.0;
                 zoomInput.max = 4.0;
                 zoomInput.step = 0.1;
@@ -399,7 +484,6 @@
             document.getElementById('zoomRangeInput').value = zoomVal;
             updateZoomDisplay(zoomVal);
 
-            // Highlight quick buttons
             ['1x', '2x', '3x', '4x'].forEach(z => {
                 const btn = document.getElementById(`zoom${z}Btn`);
                 if (btn) {
@@ -411,7 +495,6 @@
                 }
             });
 
-            // 1. Try Hardware Zoom
             if (videoTrack && videoTrack.applyConstraints) {
                 const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
                 if (capabilities.zoom) {
@@ -420,15 +503,11 @@
                         await videoTrack.applyConstraints({ advanced: [{ zoom: targetZoom }] });
                         document.getElementById('videoPreview').style.transform = 'scale(1)';
                         return;
-                    } catch(e) {
-                        console.log("Hardware zoom not applied, using CSS digital zoom");
-                    }
+                    } catch(e) {}
                 }
             }
 
-            // 2. Fallback to Smooth CSS Digital Zoom
-            const video = document.getElementById('videoPreview');
-            video.style.transform = `scale(${zoomVal})`;
+            document.getElementById('videoPreview').style.transform = `scale(${zoomVal})`;
         }
 
         function onZoomSliderChange(val) {
@@ -439,7 +518,7 @@
             document.getElementById('zoomLevelDisplay').innerText = `${parseFloat(val).toFixed(1)}x`;
         }
 
-        // Pinch to Zoom with touch gestures
+        // Pinch to Zoom
         let initialDistance = 0;
         let startZoom = 1.0;
         const scanBox = document.getElementById('scannerContainer');
@@ -466,9 +545,7 @@
             }
         });
 
-        scanBox.addEventListener('touchend', () => {
-            initialDistance = 0;
-        });
+        scanBox.addEventListener('touchend', () => { initialDistance = 0; });
 
         function stopCamera() {
             isScanning = false;
@@ -537,7 +614,7 @@
             if (vibEnabled && navigator.vibrate) navigator.vibrate([80, 50, 80]);
 
             lastResult = data;
-            saveToHistory(data);
+            saveToCloudHistory(data);
             showResultModal(data);
             stopCamera();
         }
@@ -565,7 +642,7 @@
                     previewBox.classList.remove('hidden');
 
                     if (code && code.data) {
-                        document.getElementById('galleryStatus').innerHTML = '<span class="text-emerald-400">✓ ស្កេនចាប់យកទិន្នន័យបានជោគជ័យ!</span>';
+                        document.getElementById('galleryStatus').innerHTML = '<span class="text-emerald-400">✓ ស្កេនជោគជ័យ និងបាន Sync ទៅ Cloud!</span>';
                         onQRFound(code.data);
                     } else {
                         document.getElementById('galleryStatus').innerHTML = '<span class="text-rose-400">❌ មិនអាចរកឃើញ QR Code ក្នុងរូបភាពនេះឡើយ</span>';
@@ -584,7 +661,6 @@
             const openBtn = document.getElementById('openLinkBtn');
             const paymentCard = document.getElementById('paymentDecodedCard');
 
-            // Detect Content Type
             if (data.startsWith('http://') || data.startsWith('https://')) {
                 badge.innerText = 'WEBSITE LINK';
                 badge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 uppercase';
@@ -628,62 +704,7 @@
             }
         }
 
-        // ================= HISTORY VAULT =================
-        function saveToHistory(text) {
-            scanHistory.unshift({
-                text: text,
-                time: new Date().toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit' }),
-                date: new Date().toISOString().slice(0, 10)
-            });
-            if (scanHistory.length > 50) scanHistory.pop();
-            localStorage.setItem('qrmaster_history', JSON.stringify(scanHistory));
-            renderHistory();
-        }
-
-        function renderHistory() {
-            const list = document.getElementById('historyList');
-            const empty = document.getElementById('historyEmpty');
-            document.getElementById('historyCount').innerText = scanHistory.length;
-            list.innerHTML = '';
-
-            if (scanHistory.length === 0) {
-                empty.classList.remove('hidden');
-                document.getElementById('historyBadge').classList.add('hidden');
-                return;
-            } else {
-                empty.classList.add('hidden');
-                document.getElementById('historyBadge').classList.remove('hidden');
-            }
-
-            scanHistory.forEach((item, idx) => {
-                const card = document.createElement('div');
-                card.className = "bg-obsidian-900/90 border border-gold-500/20 p-3 rounded-2xl flex items-center justify-between gap-3 text-xs";
-                card.innerHTML = `
-                    <div class="flex-1 truncate" onclick="showResultModal('${item.text.replace(/'/g, "\\'")}')">
-                        <p class="text-white font-mono truncate font-medium">${item.text}</p>
-                        <span class="text-[10px] text-slate-500">${item.date} • ${item.time}</span>
-                    </div>
-                    <button onclick="deleteHistoryItem(${idx})" class="text-slate-500 hover:text-rose-400 p-1"><i class="fa-regular fa-trash-can"></i></button>
-                `;
-                list.appendChild(card);
-            });
-        }
-
-        function deleteHistoryItem(idx) {
-            scanHistory.splice(idx, 1);
-            localStorage.setItem('qrmaster_history', JSON.stringify(scanHistory));
-            renderHistory();
-        }
-
-        function clearHistory() {
-            if (!confirm("តើលោកគ្រូចង់លុបប្រវត្តិស្កេនទាំងអស់មែនទេ?")) return;
-            scanHistory = [];
-            localStorage.removeItem('qrmaster_history');
-            renderHistory();
-        }
-
         // ================= QR GENERATOR =================
-        let generatedQRCodeObj = null;
         function handleGenerateQR() {
             const text = document.getElementById('genInput').value.trim();
             if (!text) { alert("សូមបញ្ចូលអត្ថបទជាមុនសិន!"); return; }
@@ -691,7 +712,7 @@
             const container = document.getElementById('qrcodeCanvas');
             container.innerHTML = '';
 
-            generatedQRCodeObj = new QRCode(container, {
+            new QRCode(container, {
                 text: text,
                 width: 180,
                 height: 180,
@@ -732,8 +753,6 @@
 
             if (tab === 'scanner') startCamera();
             else stopCamera();
-
-            if (tab === 'history') renderHistory();
         }
 
         function capitalize(s) {
