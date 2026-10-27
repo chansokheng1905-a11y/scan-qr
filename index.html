@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QR Master Pro — ស្កេន & បង្កើត QR Code វៃឆ្លាត | លោកគ្រូ ចាន់ សុខហេង</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Kantumruy Pro & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- HTML5-QRCode Scanner Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <!-- QRCode Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Kantumruy Pro"', '"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"Plus Jakarta Sans"', 'monospace'],
+                    },
+                    colors: {
+                        gold: {
+                            50: '#fdfbf0',
+                            100: '#faf5d7',
+                            200: '#f4e7a8',
+                            300: '#ecd272',
+                            400: '#e4bc41',
+                            500: '#d4af37', // Royal Gold
+                            600: '#b88a24',
+                            700: '#93661e',
+                            800: '#79501e',
+                            900: '#67421d',
+                        },
+                        obsidian: {
+                            800: '#161922',
+                            900: '#0d0f15',
+                            950: '#07080b',
+                        }
+                    },
+                    boxShadow: {
+                        'gold-glow': '0 0 25px -3px rgba(212, 175, 55, 0.45)',
+                        'gold-sm': '0 0 12px -2px rgba(212, 175, 55, 0.35)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #07080b; }
+        ::-webkit-scrollbar-thumb { background: #79501e; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d4af37; }
+
+        /* Metallic Gold Gradient Text */
+        .text-gold-gradient {
+            background: linear-gradient(135deg, #fff2b2 0%, #d4af37 50%, #aa771c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Gold Border Shine */
+        .gold-border {
+            border: 1px solid rgba(212, 175, 55, 0.35);
+        }
+        .gold-border-glow {
+            border: 1px solid rgba(212, 175, 55, 0.65);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+        }
+
+        /* Glassmorphism Dark Luxury */
+        .glass-luxury {
+            background: rgba(13, 15, 21, 0.82);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        /* Laser Animation */
+        @keyframes scanLaser {
+            0% { top: 4%; opacity: 0.9; }
+            50% { top: 92%; opacity: 1; }
+            100% { top: 4%; opacity: 0.9; }
+        }
+        .laser-line {
+            position: absolute;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, #f4e7a8 20%, #d4af37 50%, #f4e7a8 80%, transparent 100%);
+            box-shadow: 0 0 15px 3px rgba(212, 175, 55, 0.85);
+            animation: scanLaser 2.4s ease-in-out infinite;
+            border-radius: 9999px;
+            z-index: 20;
+        }
+
+        /* Corner Brackets for Scanner */
+        .scanner-corner {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-color: #d4af37;
+            z-index: 25;
+            filter: drop-shadow(0 0 6px rgba(212,175,55,0.7));
+        }
+        .corner-tl { top: 0; left: 0; border-top-width: 4px; border-left-width: 4px; border-top-left-radius: 12px; }
+        .corner-tr { top: 0; right: 0; border-top-width: 4px; border-right-width: 4px; border-top-right-radius: 12px; }
+        .corner-bl { bottom: 0; left: 0; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 12px; }
+        .corner-br { bottom: 0; right: 0; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 12px; }
+
+        /* Hide HTML5-QRCode default UI elements to maintain bespoke luxury UI */
+        #interactive-camera video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 1.25rem !important;
+        }
+        #interactive-camera__scan_region {
+            background: transparent !important;
+        }
+        #interactive-camera__dashboard {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="bg-obsidian-950 text-slate-100 min-h-screen font-sans selection:bg-gold-500 selection:text-obsidian-950 pb-24 md:pb-8 flex flex-col">
+
+    <!-- Top Luxury Header -->
+    <header class="sticky top-0 z-40 glass-luxury border-b border-gold-500/20 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-18 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3.5 rtl:space-x-reverse">
+                <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-gold-600 via-gold-400 to-amber-200 p-[1.5px] shadow-gold-sm">
+                    <div class="w-full h-full bg-obsidian-900 rounded-[14px] flex items-center justify-center">
+                        <i class="fa-solid fa-qrcode text-gold-400 text-xl"></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-extrabold text-base sm:text-lg tracking-tight text-gold-gradient font-mono">
+                            QR MASTER PRO
+                        </h1>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gold-500/15 text-gold-300 border border-gold-500/30 uppercase tracking-widest hidden sm:inline-block">
+                            SMART EDITION
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">
+                        កម្មសិទ្ធិ៖ <span class="text-gold-400 font-medium">លោកគ្រូ ចាន់ សុខហេង</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Action Toggles -->
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleSound()" id="soundToggleBtn" title="បិទ/បើក សំឡេង Beep" class="w-10 h-10 rounded-xl bg-obsidian-800/90 hover:bg-obsidian-800 text-gold-400 gold-border flex items-center justify-center transition active:scale-95 shadow-sm">
+                    <i class="fa-solid fa-volume-high text-sm" id="soundIcon"></i>
+                </button>
+                <button onclick="toggleVibration()" id="vibeToggleBtn" title="បិទ/បើក រំញ័រ" class="w-10 h-10 rounded-xl bg-obsidian-800/90 hover:bg-obsidian-800 text-gold-400 gold-border flex items-center justify-center transition active:scale-95 shadow-sm">
+                    <i class="fa-solid fa-mobile-screen text-sm" id="vibeIcon"></i>
+                </button>
+                <button onclick="toggleFullscreen()" title="ពេញអេក្រង់" class="w-10 h-10 rounded-xl bg-obsidian-800/90 hover:bg-obsidian-800 text-gold-400 gold-border hidden sm:flex items-center justify-center transition active:scale-95 shadow-sm">
+                    <i class="fa-solid fa-expand text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Desktop Navigation Tabs -->
+        <div class="max-w-6xl mx-auto px-4 hidden md:flex items-center justify-center gap-2 pb-3">
+            <button onclick="switchTab('camera')" id="navTabCamera" class="tab-btn active px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-gradient-to-r from-gold-600 to-gold-400 text-obsidian-950 shadow-gold-sm">
+                <i class="fa-solid fa-camera"></i> <span>ស្កេនកាមេរ៉ា (Live)</span>
+            </button>
+            <button onclick="switchTab('gallery')" id="navTabGallery" class="tab-btn px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-300 hover:text-gold-400 hover:bg-obsidian-800/80">
+                <i class="fa-solid fa-image"></i> <span>ស្កេនពីរូបភាព (Gallery)</span>
+            </button>
+            <button onclick="switchTab('generator')" id="navTabGenerator" class="tab-btn px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-300 hover:text-gold-400 hover:bg-obsidian-800/80">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> <span>បង្កើត QR Code</span>
+            </button>
+            <button onclick="switchTab('history')" id="navTabHistory" class="tab-btn px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-300 hover:text-gold-400 hover:bg-obsidian-800/80">
+                <i class="fa-solid fa-clock-rotate-left"></i> <span>ប្រវត្តិស្កេន (<span id="historyBadgeCount">0</span>)</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 flex-1">
+
+        <!-- ================= SECTION 1: LIVE CAMERA SCANNER ================= -->
+        <section id="sectionCamera" class="tab-content space-y-5">
+            <div class="relative max-w-md mx-auto">
+                
+                <!-- Scanner Viewport Card -->
+                <div class="relative bg-obsidian-900 rounded-3xl p-3 gold-border-glow overflow-hidden shadow-2xl">
+                    <div class="relative w-full aspect-[4/4] sm:aspect-square bg-black rounded-2xl overflow-hidden flex items-center justify-center">
+                        <!-- Video Target for html5-qrcode -->
+                        <div id="interactive-camera" class="w-full h-full"></div>
+
+                        <!-- Scanner Viewfinder Box Overlay -->
+                        <div class="absolute inset-8 sm:inset-10 pointer-events-none z-10 flex items-center justify-center">
+                            <div class="relative w-full h-full max-w-[270px] max-h-[270px]">
+                                <!-- Corners -->
+                                <div class="scanner-corner corner-tl"></div>
+                                <div class="scanner-corner corner-tr"></div>
+                                <div class="scanner-corner corner-bl"></div>
+                                <div class="scanner-corner corner-br"></div>
+                                <!-- Laser Scanning Line -->
+                                <div id="scannerLaser" class="laser-line"></div>
+                            </div>
+                        </div>
+
+                        <!-- Camera Offline Fallback / Loading -->
+                        <div id="cameraStandbyNotice" class="absolute inset-0 bg-obsidian-900/90 flex flex-col items-center justify-center p-6 text-center space-y-3 z-30">
+                            <div class="w-16 h-16 rounded-full bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400 text-2xl">
+                                <i class="fa-solid fa-video-slash"></i>
+                            </div>
+                            <h3 class="text-sm font-bold text-slate-200">កាមេរ៉ាមិនទាន់បានបើក</h3>
+                            <p class="text-xs text-slate-400 max-w-xs">សូមចុចប៊ូតុង «បើកកាមេរ៉ាស្កេន» ដើម្បីចាប់ផ្តើមចាប់ QR Code ដោយស្វ័យប្រវត្តិ។</p>
+                            <button onclick="startLiveCamera()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gold-500 to-amber-500 text-obsidian-950 text-xs font-bold shadow-gold-sm hover:brightness-110 active:scale-95 transition flex items-center gap-2">
+                                <i class="fa-solid fa-camera"></i> បើកកាមេរ៉ាស្កេន
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Camera Control Bar -->
+                    <div class="flex items-center justify-between gap-2 mt-3 px-1">
+                        <div class="flex items-center gap-2">
+                            <button onclick="toggleLiveCameraState()" id="btnCameraToggle" class="px-3.5 py-2 rounded-xl bg-obsidian-800 hover:bg-obsidian-750 gold-border text-gold-400 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95">
+                                <i class="fa-solid fa-power-off text-emerald-400" id="camPowerIcon"></i>
+                                <span id="camPowerText">បិទកាមេរ៉ា</span>
+                            </button>
+                            <button onclick="switchCameraFacing()" id="btnSwitchCamera" title="ប្តូរកាមេរ៉ាមុខ/ក្រោយ" class="p-2 w-9 h-9 rounded-xl bg-obsidian-800 hover:bg-obsidian-750 gold-border text-gold-400 text-xs flex items-center justify-center transition active:scale-95">
+                                <i class="fa-solid fa-camera-rotate"></i>
+                            </button>
+                            <button onclick="toggleTorch()" id="btnTorchToggle" title="បើក/បិទ ពិល" class="p-2 w-9 h-9 rounded-xl bg-obsidian-800 hover:bg-obsidian-750 gold-border text-gold-400 text-xs flex items-center justify-center transition active:scale-95">
+                                <i class="fa-regular fa-lightbulb" id="torchIcon"></i>
+                            </button>
+                        </div>
+                        <div class="text-[11px] text-slate-400 font-mono flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block"></span>
+                            <span id="scannerStatusText">Ready</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Helper Hints -->
+                <div class="text-center mt-3 text-xs text-slate-400 space-y-1">
+                    <p><i class="fa-solid fa-circle-info text-gold-400 mr-1"></i> តម្រង់កាមេរ៉ាឱ្យចំ QR Code ដើម្បីស្កេនចាប់យកព័ត៌មានភ្លាមៗ</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION 2: GALLERY IMAGE SCANNER ================= -->
+        <section id="sectionGallery" class="tab-content hidden space-y-5">
+            <div class="max-w-xl mx-auto space-y-4">
+                <div class="text-center space-y-1">
+                    <h2 class="text-base sm:text-lg font-bold text-gold-gradient">ស្កេន QR Code ពីរូបភាពក្នុងទូរសព្ទ</h2>
+                    <p class="text-xs text-slate-400">ជ្រើសរើសរូបថត ឬរូប Screenshot ដែលមាន QR Code ពី Gallery ឬ File របស់អ្នក</p>
+                </div>
+
+                <!-- Drag & Drop / Upload Zone -->
+                <div id="dropZone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)" onclick="document.getElementById('galleryFileInput').click()" class="border-2 border-dashed border-gold-500/40 hover:border-gold-500 rounded-3xl p-8 text-center cursor-pointer bg-obsidian-900/60 hover:bg-obsidian-900 transition-all shadow-xl group space-y-3">
+                    <input type="file" id="galleryFileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                    
+                    <div class="w-16 h-16 rounded-2xl bg-gold-500/10 border border-gold-500/30 text-gold-400 flex items-center justify-center mx-auto text-2xl group-hover:scale-110 transition duration-300 shadow-gold-sm">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <p class="text-sm font-semibold text-slate-200">ចុចទីនេះដើម្បីជ្រើសរូបភាព ឬទម្លាក់រូបទីនេះ</p>
+                        <p class="text-[11px] text-slate-400 font-mono">គាំទ្រ PNG, JPG, JPEG, WEBP</p>
+                    </div>
+
+                    <button type="button" class="px-4 py-2 rounded-xl bg-gold-500/20 text-gold-300 border border-gold-500/40 text-xs font-semibold group-hover:bg-gold-500 group-hover:text-obsidian-950 transition">
+                        <i class="fa-regular fa-image mr-1"></i> ជ្រើសរើសរូបភាព
+                    </button>
+                </div>
+
+                <!-- Preview Area for Scanned Image -->
+                <div id="galleryImagePreviewBox" class="hidden glass-luxury p-4 rounded-2xl gold-border space-y-3 text-center">
+                    <div class="max-h-64 overflow-hidden rounded-xl bg-black flex items-center justify-center">
+                        <img id="galleryPreviewImg" src="" alt="Selected Preview" class="max-h-64 object-contain">
+                    </div>
+                    <div class="flex items-center justify-center gap-3">
+                        <button onclick="resetGalleryUpload()" class="px-3.5 py-1.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-xs text-slate-300">
+                            <i class="fa-solid fa-rotate-left mr-1"></i> ប្តូររូបផ្សេង
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION 3: QR GENERATOR ================= -->
+        <section id="sectionGenerator" class="tab-content hidden space-y-5">
+            <div class="max-w-2xl mx-auto space-y-6">
+                <div class="text-center space-y-1">
+                    <h2 class="text-base sm:text-lg font-bold text-gold-gradient">បង្កើត QR Code ផ្ទាល់ខ្លួនប្រណិត</h2>
+                    <p class="text-xs text-slate-400">បង្កើត QR Code សម្រាប់គេហទំព័រ អក្សរ គណនីបង់ប្រាក់ ឬលេខទូរសព្ទ</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+                    <!-- Form Input Column -->
+                    <div class="md:col-span-7 glass-luxury p-5 rounded-3xl gold-border space-y-4 shadow-xl">
+                        <div>
+                            <label class="block text-xs font-bold text-gold-400 mb-1.5">ប្រភេទមាតិកា (QR Type):</label>
+                            <select id="genTypeSelect" onchange="handleGenTypeChange()" class="w-full px-3 py-2.5 rounded-xl bg-obsidian-900 border border-slate-700 text-xs font-semibold text-slate-200 focus:outline-none focus:border-gold-500">
+                                <option value="url">🌐 តំណភ្ជាប់ (Website URL)</option>
+                                <option value="text">📝 អត្ថបទធម្មតា (Plain Text)</option>
+                                <option value="wifi">📶 បណ្តាញ WiFi</option>
+                                <option value="phone">📞 លេខទូរសព្ទ (Phone Call)</option>
+                                <option value="email">✉️ អ៊ីមែល (Email)</option>
+                            </select>
+                        </div>
+
+                        <!-- Dynamic Inputs -->
+                        <div id="genInputContainer" class="space-y-3 text-xs">
+                            <!-- Injected by JS -->
+                        </div>
+
+                        <!-- Style Pickers -->
+                        <div class="grid grid-cols-2 gap-3 pt-1">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-400 mb-1">ពណ៌កូដ (Dark):</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="genColorDark" value="#07080b" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0">
+                                    <span class="text-[11px] font-mono text-slate-400">#07080b</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-400 mb-1">ពណ៌ផ្ទៃ (Light):</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="genColorLight" value="#ffffff" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0">
+                                    <span class="text-[11px] font-mono text-slate-400">#ffffff</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="generateCustomQr()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-gold-500 to-amber-500 text-obsidian-950 text-xs font-bold shadow-gold-sm hover:brightness-110 active:scale-98 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> បង្កើត QR Code ឥឡូវនេះ
+                        </button>
+                    </div>
+
+                    <!-- Output & Download Column -->
+                    <div class="md:col-span-5 glass-luxury p-5 rounded-3xl gold-border flex flex-col items-center justify-center space-y-4 shadow-xl text-center">
+                        <div class="relative p-4 bg-white rounded-2xl shadow-lg border-2 border-gold-400/40" id="generatedQrWrapper">
+                            <div id="generatedQrCanvas" class="flex items-center justify-center min-w-[180px] min-h-[180px]"></div>
+                        </div>
+
+                        <div class="space-y-2 w-full">
+                            <button onclick="downloadGeneratedQr()" id="btnDownloadQr" class="w-full py-2 px-3 rounded-xl bg-obsidian-800 hover:bg-obsidian-750 text-gold-400 gold-border text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                                <i class="fa-solid fa-download"></i> ទាញយកជា PNG (HD)
+                            </button>
+                            <button onclick="copyGeneratedQrContent()" class="w-full py-2 px-3 rounded-xl border border-slate-700 hover:bg-obsidian-800 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                                <i class="fa-regular fa-copy"></i> ចម្លងទិន្នន័យ (Copy)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION 4: SCAN HISTORY VAULT ================= -->
+        <section id="sectionHistory" class="tab-content hidden space-y-5">
+            <div class="glass-luxury p-5 rounded-3xl gold-border shadow-xl space-y-4">
+                
+                <!-- History Top Bar -->
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-gold-400"></i> ប្រវត្តិស្កេនកន្លងមក (Scan History)
+                        </h2>
+                        <p class="text-xs text-slate-400">ទិន្នន័យត្រូវបានរក្សាទុកដោយសុវត្ថិភាពលើឧបករណ៍របស់អ្នក (Offline-first)</p>
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <button onclick="exportHistoryCSV()" class="px-3 py-1.5 rounded-xl bg-obsidian-800 hover:bg-obsidian-750 gold-border text-gold-400 text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-csv"></i> Export CSV
+                        </button>
+                        <button onclick="clearAllHistory()" class="px-3 py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-regular fa-trash-can"></i> លុបទាំងអស់
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters & Search -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+                        <button onclick="filterHistory('all')" id="histFilterAll" class="hist-filter-pill active px-3 py-1 rounded-xl text-xs font-semibold bg-gold-500 text-obsidian-950 transition">ទាំងអស់</button>
+                        <button onclick="filterHistory('url')" id="histFilterUrl" class="hist-filter-pill px-3 py-1 rounded-xl text-xs font-semibold bg-obsidian-800 text-slate-300 hover:text-gold-400 transition">🌐 Links</button>
+                        <button onclick="filterHistory('khqr')" id="histFilterKhqr" class="hist-filter-pill px-3 py-1 rounded-xl text-xs font-semibold bg-obsidian-800 text-slate-300 hover:text-gold-400 transition">💳 KHQR / Pay</button>
+                        <button onclick="filterHistory('wifi')" id="histFilterWifi" class="hist-filter-pill px-3 py-1 rounded-xl text-xs font-semibold bg-obsidian-800 text-slate-300 hover:text-gold-400 transition">📶 WiFi</button>
+                    </div>
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-500"></i>
+                        <input type="text" id="historySearchInput" oninput="renderHistoryList()" placeholder="ស្វែងរកក្នុងប្រវត្តិ..." class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-obsidian-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-gold-500">
+                    </div>
+                </div>
+
+                <!-- History List Items -->
+                <div id="historyListContainer" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+                    <!-- Dynamic history items -->
+                </div>
+                
+                <div id="historyEmptyNotice" class="text-center py-12 hidden">
+                    <i class="fa-solid fa-inbox text-3xl text-slate-600 mb-2"></i>
+                    <p class="text-xs text-slate-400">មិនទាន់មានប្រវត្តិស្កេននៅឡើយទេ</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= MODAL: SMART SCAN RESULT (លទ្ធផលស្កេន) ================= -->
+    <div id="scanResultModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="bg-obsidian-900 border border-gold-500/50 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative transform transition-all">
+            
+            <!-- Result Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div id="resultTypeIconWrapper" class="w-9 h-9 rounded-xl bg-gold-500/15 text-gold-400 border border-gold-500/30 flex items-center justify-center text-sm shadow-sm">
+                        <i id="resultTypeIcon" class="fa-solid fa-check"></i>
+                    </div>
+                    <div>
+                        <span id="resultTypeBadge" class="text-[10px] font-bold uppercase tracking-wider text-gold-300 px-2 py-0.5 rounded-full bg-gold-500/20 border border-gold-500/30">
+                            RESULT
+                        </span>
+                        <h3 class="text-sm font-bold text-white mt-0.5">បានស្កេនជោគជ័យ</h3>
+                    </div>
+                </div>
+                <button onclick="closeResultModal()" class="w-8 h-8 rounded-full bg-obsidian-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Intelligent Payload Breakdown Box -->
+            <div id="smartBreakdownBox" class="hidden rounded-2xl p-3.5 bg-obsidian-950 border border-gold-500/30 space-y-2 text-xs">
+                <!-- Injected structured data (e.g., KHQR amount, WiFi password) -->
+            </div>
+
+            <!-- Raw Scanned Content Box -->
+            <div class="space-y-1">
+                <label class="text-[11px] font-semibold text-slate-400">ទិន្នន័យដែលស្កេនបាន (Raw Payload):</label>
+                <div class="p-3.5 rounded-2xl bg-obsidian-950 border border-slate-800 max-h-40 overflow-y-auto">
+                    <p id="resultTextDisplay" class="font-mono text-xs text-slate-200 break-all select-all leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Action Buttons Grid -->
+            <div class="grid grid-cols-2 gap-2 pt-1 text-xs">
+                <button onclick="copyResultContent()" id="btnCopyResult" class="py-2.5 px-3 rounded-xl bg-obsidian-800 hover:bg-obsidian-750 text-gold-400 gold-border font-semibold flex items-center justify-center gap-2 transition active:scale-95">
+                    <i class="fa-regular fa-copy"></i>
+                    <span id="btnCopyText">ចម្លង (Copy)</span>
+                </button>
+
+                <button onclick="openResultExternal()" id="btnActionPrimary" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-gold-500 to-amber-500 text-obsidian-950 font-bold shadow-gold-sm hover:brightness-110 flex items-center justify-center gap-2 transition active:scale-95">
+                    <i id="btnActionIcon" class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span id="btnActionText">បើកមើល (Open)</span>
+                </button>
+            </div>
+
+            <!-- Modal Footer Note -->
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">
+                <span id="resultTimestamp">កាលបរិច្ឆេទ</span>
+                <span class="text-gold-400/80 font-medium">QR Master Pro • លោកគ្រូ ចាន់ សុខហេង</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MOBILE BOTTOM FLOATING NAVBAR ================= -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 glass-luxury border-t border-gold-500/25 px-4 py-2.5 shadow-2xl">
+        <div class="grid grid-cols-4 gap-1 text-center">
+            <button onclick="switchTab('camera')" id="mobTabCamera" class="mob-nav-btn active flex flex-col items-center gap-1 text-gold-400 transition py-1">
+                <i class="fa-solid fa-camera text-base"></i>
+                <span class="text-[10px] font-medium">កាមេរ៉ា</span>
+            </button>
+            <button onclick="switchTab('gallery')" id="mobTabGallery" class="mob-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-gold-400 transition py-1">
+                <i class="fa-solid fa-image text-base"></i>
+                <span class="text-[10px] font-medium">រូបភាព</span>
+            </button>
+            <button onclick="switchTab('generator')" id="mobTabGenerator" class="mob-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-gold-400 transition py-1">
+                <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                <span class="text-[10px] font-medium">បង្កើត QR</span>
+            </button>
+            <button onclick="switchTab('history')" id="mobTabHistory" class="mob-nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-gold-400 transition py-1">
+                <div class="relative">
+                    <i class="fa-solid fa-clock-rotate-left text-base"></i>
+                    <span id="mobHistoryBadge" class="absolute -top-1.5 -right-2 bg-gold-500 text-obsidian-950 text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                </div>
+                <span class="text-[10px] font-medium">ប្រវត្តិ</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Global Toast Alert -->
+    <div id="toastBox" class="fixed top-20 right-4 z-50 transform translate-x-32 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="glass-luxury border border-gold-500/60 px-4 py-2.5 rounded-2xl shadow-gold-sm flex items-center gap-2.5 text-xs text-white">
+            <i class="fa-solid fa-circle-check text-gold-400 text-sm" id="toastIcon"></i>
+            <span id="toastMessage">សារជូនដំណឹង</span>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT APPLICATION CORE ================= -->
+    <script>
+        // State variables
+        let html5QrScanner = null;
+        let isCameraRunning = false;
+        let currentFacingMode = "environment"; // "environment" (back) or "user" (front)
+        let isTorchOn = false;
+        let isSoundEnabled = true;
+        let isVibeEnabled = true;
+        let scanHistory = [];
+        let activeTab = "camera";
+        let lastScannedRawText = "";
+        let generatedQrInstance = null;
+        let activeHistoryFilter = "all";
+
+        // Sound Synthesis (Bespoke Gold Tone Beep)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeepSound() {
+            if (!isSoundEnabled) return;
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+                osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.12); // E6
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.14);
+            } catch (e) {
+                console.log("Audio feedback muted or blocked", e);
+            }
+        }
+
+        function triggerVibration() {
+            if (isVibeEnabled && navigator.vibrate) {
+                navigator.vibrate([60, 40, 60]);
+            }
+        }
+
+        // ================= LIFECYCLE & INIT =================
+        window.addEventListener('DOMContentLoaded', () => {
+            loadScanHistory();
+            initGeneratorInputs('url');
+            generateDefaultQr();
+
+            // Auto-start camera scanner on initial view
+            setTimeout(() => {
+                startLiveCamera();
+            }, 450);
+        });
+
+        // ================= TAB NAVIGATION =================
+        function switchTab(tabId) {
+            activeTab = tabId;
+
+            // Pause / restart camera according to tab
+            if (tabId !== 'camera' && isCameraRunning) {
+                stopLiveCamera();
+            } else if (tabId === 'camera' && !isCameraRunning) {
+                startLiveCamera();
+            }
+
+            // Hide all tab sections
+            document.querySelectorAll('.tab-content').forEach(sec => sec.classList.add('hidden'));
+            
+            // Show target section
+            if (tabId === 'camera') document.getElementById('sectionCamera').classList.remove('hidden');
+            if (tabId === 'gallery') document.getElementById('sectionGallery').classList.remove('hidden');
+            if (tabId === 'generator') document.getElementById('sectionGenerator').classList.remove('hidden');
+            if (tabId === 'history') {
+                document.getElementById('sectionHistory').classList.remove('hidden');
+                renderHistoryList();
+            }
+
+            // Update Desktop Nav UI
+            const desktopTabs = {
+                camera: 'navTabCamera',
+                gallery: 'navTabGallery',
+                generator: 'navTabGenerator',
+                history: 'navTabHistory'
+            };
+            Object.keys(desktopTabs).forEach(k => {
+                const btn = document.getElementById(desktopTabs[k]);
+                if (k === tabId) {
+                    btn.className = "tab-btn active px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-gradient-to-r from-gold-600 to-gold-400 text-obsidian-950 shadow-gold-sm";
+                } else {
+                    btn.className = "tab-btn px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-300 hover:text-gold-400 hover:bg-obsidian-800/80";
+                }
+            });
+
+            // Update Mobile Bottom Nav UI
+            const mobTabs = {
+                camera: 'mobTabCamera',
+                gallery: 'mobTabGallery',
+                generator: 'mobTabGenerator',
+                history: 'mobTabHistory'
+            };
+            Object.keys(mobTabs).forEach(k => {
+                const mBtn = document.getElementById(mobTabs[k]);
+                if (k === tabId) {
+                    mBtn.classList.remove('text-slate-400');
+                    mBtn.classList.add('text-gold-400', 'active');
+                } else {
+                    mBtn.classList.remove('text-gold-400', 'active');
+                    mBtn.classList.add('text-slate-400');
+                }
+            });
+        }
+
+        // ================= CAMERA SCANNER ENGINE =================
+        async function startLiveCamera() {
+            try {
+                document.getElementById('cameraStandbyNotice').classList.add('hidden');
+                document.getElementById('scannerStatusText').innerText = "Scanning...";
+
+                if (!html5QrScanner) {
+                    html5QrScanner = new Html5Qrcode("interactive-camera");
+                }
+
+                const config = {
+                    fps: 15,
+                    qrbox: function(viewfinderWidth, viewfinderHeight) {
+                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                        const edgeSize = Math.floor(minEdge * 0.72);
+                        return { width: edgeSize, height: edgeSize };
+                    },
+                    aspectRatio: 1.0
+                };
+
+                await html5QrScanner.start(
+                    { facingMode: currentFacingMode },
+                    config,
+                    onScanSuccessCallback,
+                    onScanFailureCallback
+                );
+
+                isCameraRunning = true;
+                updateCameraControlsUI(true);
+            } catch (err) {
+                console.error("Camera startup error:", err);
+                document.getElementById('cameraStandbyNotice').classList.remove('hidden');
+                document.getElementById('scannerStatusText').innerText = "Stopped";
+                updateCameraControlsUI(false);
+                showToast("សូមអនុញ្ញាតសិទ្ធិប្រើប្រាស់ Camera លើ Browser របស់អ្នក", "warning");
+            }
+        }
+
+        async function stopLiveCamera() {
+            if (html5QrScanner && isCameraRunning) {
+                try {
+                    await html5QrScanner.stop();
+                } catch (e) {
+                    console.log("Stop camera error:", e);
+                }
+            }
+            isCameraRunning = false;
+            document.getElementById('cameraStandbyNotice').classList.remove('hidden');
+            document.getElementById('scannerStatusText').innerText = "Standby";
+            updateCameraControlsUI(false);
+        }
+
+        function toggleLiveCameraState() {
+            if (isCameraRunning) {
+                stopLiveCamera();
+            } else {
+                startLiveCamera();
+            }
+        }
+
+        async function switchCameraFacing() {
+            currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+            if (isCameraRunning) {
+                await stopLiveCamera();
+                await startLiveCamera();
+                showToast(`បានប្តូរទៅកាមេរ៉ា៖ ${currentFacingMode === 'environment' ? 'ក្រោយ (Back)' : 'មុខ (Front)'}`);
+            }
+        }
+
+        async function toggleTorch() {
+            if (!isCameraRunning || !html5QrScanner) {
+                showToast("សូមបើកកាមេរ៉ាជាមុនសិន", "warning");
+                return;
+            }
+            try {
+                isTorchOn = !isTorchOn;
+                await html5QrScanner.applyVideoConstraints({
+                    advanced: [{ torch: isTorchOn }]
+                });
+                const icon = document.getElementById('torchIcon');
+                if (isTorchOn) {
+                    icon.className = "fa-solid fa-lightbulb text-amber-300";
+                    showToast("បានបើកពិល (Torch On)");
+                } else {
+                    icon.className = "fa-regular fa-lightbulb";
+                    showToast("បានបិទពិល (Torch Off)");
+                }
+            } catch (err) {
+                showToast("ឧបករណ៍មិនគាំទ្រ Flashlight តាម Web ឡើយ", "warning");
+            }
+        }
+
+        function updateCameraControlsUI(running) {
+            const btnText = document.getElementById('camPowerText');
+            const btnIcon = document.getElementById('camPowerIcon');
+            if (running) {
+                btnText.innerText = "បិទកាមេរ៉ា";
+                btnIcon.className = "fa-solid fa-power-off text-emerald-400";
+            } else {
+                btnText.innerText = "បើកកាមេរ៉ា";
+                btnIcon.className = "fa-solid fa-power-off text-rose-400";
+            }
+        }
+
+        function onScanSuccessCallback(decodedText, decodedResult) {
+            playBeepSound();
+            triggerVibration();
+            handleSmartDecodedResult(decodedText);
+        }
+
+        function onScanFailureCallback(error) {
+            // Quiet frame non-match
+        }
+
+        // ================= GALLERY IMAGE SCANNER =================
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            scanImageFile(file);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('dropZone').classList.add('border-gold-500', 'bg-obsidian-900');
+        }
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('dropZone').classList.remove('border-gold-500', 'bg-obsidian-900');
+        }
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('dropZone').classList.remove('border-gold-500', 'bg-obsidian-900');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                scanImageFile(e.dataTransfer.files[0]);
+            }
+        }
+
+        async function scanImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                document.getElementById('galleryPreviewImg').src = e.target.result;
+                document.getElementById('galleryImagePreviewBox').classList.remove('hidden');
+
+                try {
+                    const html5QrCode = new Html5Qrcode("interactive-camera");
+                    const decodedText = await html5QrCode.scanFile(file, true);
+                    playBeepSound();
+                    triggerVibration();
+                    handleSmartDecodedResult(decodedText);
+                } catch (err) {
+                    showToast("មិនអាចស្កេនឃើញ QR Code ក្នុងរូបភាពនេះឡើយ!", "warning");
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetGalleryUpload() {
+            document.getElementById('galleryFileInput').value = '';
+            document.getElementById('galleryImagePreviewBox').classList.add('hidden');
+            document.getElementById('galleryPreviewImg').src = '';
+        }
+
+        // ================= SMART CONTENT CLASSIFIER & RESULT MODAL =================
+        function handleSmartDecodedResult(rawText) {
+            lastScannedRawText = rawText;
+            const parsed = parseQrContent(rawText);
+
+            // Save to Local History
+            saveToHistory(parsed);
+
+            // Populate Result Modal
+            document.getElementById('resultTypeBadge').innerText = parsed.typeLabel;
+            document.getElementById('resultTextDisplay').innerText = parsed.raw;
+            document.getElementById('resultTimestamp').innerText = `ស្កេននៅ៖ ${new Date().toLocaleTimeString('km-KH')}`;
+
+            // Configure Icon & Action
+            const iconElem = document.getElementById('resultTypeIcon');
+            const actionBtn = document.getElementById('btnActionPrimary');
+            const actionText = document.getElementById('btnActionText');
+            const actionIcon = document.getElementById('btnActionIcon');
+            const breakdownBox = document.getElementById('smartBreakdownBox');
+
+            breakdownBox.classList.add('hidden');
+            breakdownBox.innerHTML = '';
+
+            if (parsed.type === 'url') {
+                iconElem.className = "fa-solid fa-globe";
+                actionText.innerText = "បើកគេហទំព័រ (Open Link)";
+                actionIcon.className = "fa-solid fa-arrow-up-right-from-square";
+                actionBtn.classList.remove('hidden');
+            } else if (parsed.type === 'khqr') {
+                iconElem.className = "fa-solid fa-money-bill-wave text-emerald-400";
+                actionText.innerText = "ចម្លងកូដ KHQR (Copy)";
+                actionIcon.className = "fa-regular fa-copy";
+                actionBtn.classList.remove('hidden');
+
+                // Render KHQR Breakdown
+                breakdownBox.classList.remove('hidden');
+                breakdownBox.innerHTML = `
+                    <div class="flex items-center justify-between text-gold-400 font-bold border-b border-slate-800 pb-1.5">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-building-columns"></i> KHQR / Bakong Payment</span>
+                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px]">EMVCo Standard</span>
+                    </div>
+                    <div class="space-y-1 text-slate-300 text-[11px]">
+                        ${parsed.khqrMerchant ? `<p>អ្នកទទួល (Merchant)៖ <strong class="text-white">${parsed.khqrMerchant}</strong></p>` : ''}
+                        ${parsed.khqrAmount ? `<p>ចំនួនទឹកប្រាក់៖ <strong class="text-emerald-400 text-xs">${parsed.khqrCurrency} ${parsed.khqrAmount}</strong></p>` : '<p class="text-slate-400">ប្រភេទ Dynamic ឬ Static QR Code សម្រាប់បញ្ចូលចំនួនប្រាក់</p>'}
+                    </div>
+                `;
+            } else if (parsed.type === 'wifi') {
+                iconElem.className = "fa-solid fa-wifi text-cyan-400";
+                actionText.innerText = "ចម្លងលេខកូដ WiFi";
+                actionIcon.className = "fa-solid fa-key";
+                actionBtn.classList.remove('hidden');
+
+                // Render WiFi Breakdown
+                breakdownBox.classList.remove('hidden');
+                breakdownBox.innerHTML = `
+                    <div class="flex items-center justify-between text-cyan-400 font-bold border-b border-slate-800 pb-1.5">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-wifi"></i> បណ្តាញ WiFi (Credentials)</span>
+                        <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono text-[10px]">${parsed.wifiType || 'WPA'}</span>
+                    </div>
+                    <div class="space-y-1 text-slate-300 text-[11px]">
+                        <p>ឈ្មោះបណ្តាញ (SSID)៖ <strong class="text-white">${parsed.wifiSsid}</strong></p>
+                        <p>លេខសម្ងាត់ (Password)៖ <strong class="text-amber-300 font-mono text-xs">${parsed.wifiPass || '(គ្មាន)'}</strong></p>
+                    </div>
+                `;
+            } else if (parsed.type === 'phone') {
+                iconElem.className = "fa-solid fa-phone text-emerald-400";
+                actionText.innerText = "ហៅទៅកាន់លេខនេះ";
+                actionIcon.className = "fa-solid fa-phone-volume";
+                actionBtn.classList.remove('hidden');
+            } else {
+                iconElem.className = "fa-solid fa-align-left";
+                actionText.innerText = "ចម្លងអត្ថបទ";
+                actionIcon.className = "fa-regular fa-copy";
+                actionBtn.classList.remove('hidden');
+            }
+
+            // Open Modal
+            document.getElementById('scanResultModal').classList.remove('hidden');
+            document.getElementById('scanResultModal').classList.add('flex');
+        }
+
+        function parseQrContent(raw) {
+            const trimmed = raw.trim();
+
+            // 1. Check KHQR / Bakong EMVCo Payload
+            if (trimmed.startsWith('00020101') || trimmed.includes('bakong') || trimmed.includes('khqr')) {
+                // Try parse amount tag 54, currency tag 53, merchant tag 59
+                let amount = "";
+                let currency = "USD";
+                let merchant = "";
+
+                // Tag 54 Regex: 54[length][value]
+                const amountMatch = trimmed.match(/54(\d{2})(\d+(\.\d+)?)/);
+                if (amountMatch) amount = amountMatch[2];
+
+                const currMatch = trimmed.match(/5303(\d{3})/);
+                if (currMatch) currency = currMatch[1] === "116" ? "KHR" : "USD";
+
+                const merchMatch = trimmed.match(/59(\d{2})([a-zA-Z0-9\s]+)/);
+                if (merchMatch) merchant = merchMatch[2].slice(0, parseInt(merchMatch[1]));
+
+                return {
+                    raw: trimmed,
+                    type: 'khqr',
+                    typeLabel: 'KHQR / Payment',
+                    khqrAmount: amount,
+                    khqrCurrency: currency,
+                    khqrMerchant: merchant
+                };
+            }
+
+            // 2. Check WiFi: WIFI:T:WPA;S:MySSID;P:MyPassword;;
+            if (trimmed.startsWith('WIFI:') || trimmed.startsWith('wifi:')) {
+                const ssidMatch = trimmed.match(/S:([^;]+);/i);
+                const passMatch = trimmed.match(/P:([^;]+);/i);
+                const typeMatch = trimmed.match(/T:([^;]+);/i);
+                return {
+                    raw: trimmed,
+                    type: 'wifi',
+                    typeLabel: 'WiFi Network',
+                    wifiSsid: ssidMatch ? ssidMatch[1] : 'Unknown',
+                    wifiPass: passMatch ? passMatch[1] : '',
+                    wifiType: typeMatch ? typeMatch[1] : 'WPA'
+                };
+            }
+
+            // 3. Check Phone: tel:+855...
+            if (trimmed.startsWith('tel:') || /^(\+?[0-9]{8,15})$/.test(trimmed)) {
+                return {
+                    raw: trimmed,
+                    type: 'phone',
+                    typeLabel: 'Phone Number',
+                    phoneNumber: trimmed.replace('tel:', '')
+                };
+            }
+
+            // 4. Check URL / Web Link
+            if (/^(https?:\/\/|www\.)[^\s/$.?#].[^\s]*$/i.test(trimmed) || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+                let validUrl = trimmed;
+                if (!validUrl.startsWith('http')) validUrl = 'https://' + validUrl;
+                return {
+                    raw: validUrl,
+                    type: 'url',
+                    typeLabel: 'Website URL',
+                    url: validUrl
+                };
+            }
+
+            // 5. Default Plain Text
+            return {
+                raw: trimmed,
+                type: 'text',
+                typeLabel: 'Plain Text'
+            };
+        }
+
+        function closeResultModal() {
+            document.getElementById('scanResultModal').classList.add('hidden');
+            document.getElementById('scanResultModal').classList.remove('flex');
+        }
+
+        function copyResultContent() {
+            const parsed = parseQrContent(lastScannedRawText);
+            let textToCopy = parsed.raw;
+            if (parsed.type === 'wifi' && parsed.wifiPass) {
+                textToCopy = parsed.wifiPass; // Friendly copy pass
+            }
+            executeClipboardCopy(textToCopy);
+            showToast("បានចម្លងទិន្នន័យជោគជ័យ!");
+        }
+
+        function openResultExternal() {
+            const parsed = parseQrContent(lastScannedRawText);
+            if (parsed.type === 'url') {
+                window.open(parsed.raw, '_blank', 'noopener,noreferrer');
+            } else if (parsed.type === 'phone') {
+                window.location.href = `tel:${parsed.phoneNumber}`;
+            } else if (parsed.type === 'wifi') {
+                executeClipboardCopy(parsed.wifiPass);
+                showToast("បានចម្លងលេខកូដ WiFi រួចរាល់!");
+            } else {
+                executeClipboardCopy(parsed.raw);
+                showToast("បានចម្លងអត្ថបទជោគជ័យ!");
+            }
+        }
+
+        // ================= SCAN HISTORY VAULT =================
+        function loadScanHistory() {
+            const stored = localStorage.getItem('qrmaster_history');
+            if (stored) {
+                try { scanHistory = JSON.parse(stored); } catch (e) { scanHistory = []; }
+            }
+            updateHistoryBadgeCount();
+        }
+
+        function saveToHistory(item) {
+            // Prevent exact immediate duplicate
+            if (scanHistory.length > 0 && scanHistory[0].raw === item.raw) return;
+
+            const entry = {
+                id: 'qr_' + Date.now(),
+                raw: item.raw,
+                type: item.type,
+                typeLabel: item.typeLabel,
+                timestamp: new Date().toISOString(),
+                displayTime: new Date().toLocaleString('km-KH', { dateStyle: 'short', timeStyle: 'short' }),
+                favorite: false
+            };
+
+            scanHistory.unshift(entry);
+            if (scanHistory.length > 200) scanHistory.pop(); // Cap history
+
+            localStorage.setItem('qrmaster_history', JSON.stringify(scanHistory));
+            updateHistoryBadgeCount();
+        }
+
+        function updateHistoryBadgeCount() {
+            const count = scanHistory.length;
+            document.getElementById('historyBadgeCount').innerText = count;
+            const mobBadge = document.getElementById('mobHistoryBadge');
+            mobBadge.innerText = count;
+            mobBadge.classList.toggle('hidden', count === 0);
+        }
+
+        function filterHistory(filterType) {
+            activeHistoryFilter = filterType;
+            document.querySelectorAll('.hist-filter-pill').forEach(pill => {
+                pill.className = "hist-filter-pill px-3 py-1 rounded-xl text-xs font-semibold bg-obsidian-800 text-slate-300 hover:text-gold-400 transition";
+            });
+            const activeElem = document.getElementById('histFilter' + filterType.charAt(0).toUpperCase() + filterType.slice(1));
+            if (activeElem) activeElem.className = "hist-filter-pill active px-3 py-1 rounded-xl text-xs font-semibold bg-gold-500 text-obsidian-950 transition";
+            renderHistoryList();
+        }
+
+        function renderHistoryList() {
+            const container = document.getElementById('historyListContainer');
+            const emptyNotice = document.getElementById('historyEmptyNotice');
+            const search = (document.getElementById('historySearchInput').value || '').toLowerCase().trim();
+            container.innerHTML = '';
+
+            let filtered = scanHistory;
+            if (activeHistoryFilter !== 'all') {
+                filtered = filtered.filter(h => h.type === activeHistoryFilter);
+            }
+            if (search) {
+                filtered = filtered.filter(h => h.raw.toLowerCase().includes(search) || h.typeLabel.toLowerCase().includes(search));
+            }
+
+            if (filtered.length === 0) {
+                emptyNotice.classList.remove('hidden');
+                return;
+            } else {
+                emptyNotice.classList.add('hidden');
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "glass-luxury p-3.5 rounded-2xl border border-slate-800 hover:border-gold-500/40 transition flex items-start justify-between gap-3 group";
+
+                let iconClass = "fa-solid fa-align-left text-slate-400";
+                if (item.type === 'url') iconClass = "fa-solid fa-globe text-blue-400";
+                if (item.type === 'khqr') iconClass = "fa-solid fa-money-bill-wave text-emerald-400";
+                if (item.type === 'wifi') iconClass = "fa-solid fa-wifi text-cyan-400";
+                if (item.type === 'phone') iconClass = "fa-solid fa-phone text-amber-400";
+
+                card.innerHTML = `
+                    <div class="flex items-start gap-3 min-w-0 flex-1">
+                        <div class="w-9 h-9 rounded-xl bg-obsidian-900 border border-slate-700/80 flex items-center justify-center shrink-0 text-sm">
+                            <i class="${iconClass}"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2 py-0.5 rounded-md bg-gold-500/10 text-gold-300 border border-gold-500/20 text-[10px] font-bold uppercase tracking-wider">${item.typeLabel}</span>
+                                <span class="text-[10px] text-slate-500 font-mono">${item.displayTime}</span>
+                            </div>
+                            <p class="text-xs text-slate-200 truncate font-mono select-all">${item.raw}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="inspectHistoryItem('${item.id}')" title="មើលលម្អិត" class="w-8 h-8 rounded-lg bg-obsidian-800 hover:bg-obsidian-750 text-gold-400 flex items-center justify-center text-xs transition">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <button onclick="copyRawText('${item.raw.replace(/'/g, "\\'")}')" title="ចម្លង" class="w-8 h-8 rounded-lg bg-obsidian-800 hover:bg-obsidian-750 text-slate-300 hover:text-white flex items-center justify-center text-xs transition">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <button onclick="deleteHistoryItem('${item.id}')" title="លុប" class="w-8 h-8 rounded-lg bg-obsidian-800 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 flex items-center justify-center text-xs transition">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function inspectHistoryItem(id) {
+            const item = scanHistory.find(h => h.id === id);
+            if (item) handleSmartDecodedResult(item.raw);
+        }
+
+        function copyRawText(text) {
+            executeClipboardCopy(text);
+            showToast("បានចម្លងចូល Clipboard រួចរាល់!");
+        }
+
+        function deleteHistoryItem(id) {
+            scanHistory = scanHistory.filter(h => h.id !== id);
+            localStorage.setItem('qrmaster_history', JSON.stringify(scanHistory));
+            renderHistoryList();
+            updateHistoryBadgeCount();
+            showToast("បានលុបមួយធាតុចេញពីប្រវត្តិ");
+        }
+
+        function clearAllHistory() {
+            if (!confirm("តើលោកគ្រូពិតជាចង់លុបប្រវត្តិស្កេនទាំងអស់ចេញមែនទេ?")) return;
+            scanHistory = [];
+            localStorage.setItem('qrmaster_history', JSON.stringify([]));
+            renderHistoryList();
+            updateHistoryBadgeCount();
+            showToast("បានលុបប្រវត្តិទាំងអស់ជោគជ័យ");
+        }
+
+        function exportHistoryCSV() {
+            if (scanHistory.length === 0) {
+                showToast("គ្មានប្រវត្តិសម្រាប់ Export ឡើយ!", "warning");
+                return;
+            }
+            let csvContent = "\uFEFFល.រ,ប្រភេទ,ទិន្នន័យ,កាលបរិច្ឆេទ\n";
+            scanHistory.forEach((h, idx) => {
+                const cleanRaw = `"${h.raw.replace(/"/g, '""')}"`;
+                csvContent += `${idx + 1},${h.typeLabel},${cleanRaw},${h.displayTime}\n`;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `QR_Scan_History_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            showToast("បានទាញយក File CSV រួចរាល់");
+        }
+
+        // ================= SMART QR GENERATOR =================
+        function handleGenTypeChange() {
+            const type = document.getElementById('genTypeSelect').value;
+            initGeneratorInputs(type);
+        }
+
+        function initGeneratorInputs(type) {
+            const container = document.getElementById('genInputContainer');
+            if (type === 'url') {
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-slate-400 mb-1">គេហទំព័រ / Web Link:</label>
+                        <input type="url" id="genInputUrl" value="https://facebook.com" placeholder="https://example.com" class="w-full px-3 py-2 rounded-xl bg-obsidian-900 border border-slate-700 text-slate-100 font-mono text-xs focus:outline-none focus:border-gold-500">
+                    </div>
+                `;
+            } else if (type === 'text') {
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-slate-400 mb-1">អត្ថបទដែលត្រូវបំលែងជា QR:</label>
+                        <textarea id="genInputText" rows="3" placeholder="វាយអត្ថបទរបស់អ្នកនៅទីនេះ..." class="w-full px-3 py-2 rounded-xl bg-obsidian-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-gold-500">លោកគ្រូ ចាន់ សុខហេង — ឯកទេសគណិតវិទ្យា វិទ្យាល័យ ជា ស៊ីម ឈូកវ៉ា</textarea>
+                    </div>
+                `;
+            } else if (type === 'wifi') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-slate-400 mb-1">ឈ្មោះ WiFi (SSID):</label>
+                            <input type="text" id="genWifiSsid" placeholder="WiFi Name" class="w-full px-3 py-2 rounded-xl bg-obsidian-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-gold-500">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">លេខសម្ងាត់ (Password):</label>
+                            <input type="text" id="genWifiPass" placeholder="Password" class="w-full px-3 py-2 rounded-xl bg-obsidian-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-gold-500">
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'phone') {
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-slate-400 mb-1">លេខទូរសព្ទ:</label>
+                        <input type="tel" id="genPhoneInput" placeholder="012 345 678" class="w-full px-3 py-2 rounded-xl bg-obsidian-900 border border-slate-700 text-slate-100 font-mono text-xs focus:outline-none focus:border-gold-500">
+                    </div>
+                `;
+            } else if (type === 'email') {
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-slate-400 mb-1">អ៊ីមែល (Email Address):</label>
+                        <input type="email" id="genEmailInput" placeholder="teacher@gmail.com" class="w-full px-3 py-2 rounded-xl bg-obsidian-900 border border-slate-700 text-slate-100 font-mono text-xs focus:outline-none focus:border-gold-500">
+                    </div>
+                `;
+            }
+        }
+
+        function generateDefaultQr() {
+            renderQrCode("https://chansokheng.edu.kh", "#07080b", "#ffffff");
+        }
+
+        function generateCustomQr() {
+            const type = document.getElementById('genTypeSelect').value;
+            let payload = "";
+
+            if (type === 'url') payload = document.getElementById('genInputUrl').value.trim();
+            else if (type === 'text') payload = document.getElementById('genInputText').value.trim();
+            else if (type === 'wifi') {
+                const ssid = document.getElementById('genWifiSsid').value.trim();
+                const pass = document.getElementById('genWifiPass').value.trim();
+                if (!ssid) { showToast("សូមបញ្ចូលឈ្មោះ WiFi (SSID)", "warning"); return; }
+                payload = `WIFI:T:WPA;S:${ssid};P:${pass};;`;
+            } else if (type === 'phone') {
+                const ph = document.getElementById('genPhoneInput').value.trim();
+                payload = `tel:${ph}`;
+            } else if (type === 'email') {
+                const em = document.getElementById('genEmailInput').value.trim();
+                payload = `mailto:${em}`;
+            }
+
+            if (!payload) {
+                showToast("សូមបំពេញទិន្នន័យជាមុនសិន!", "warning");
+                return;
+            }
+
+            const colorDark = document.getElementById('genColorDark').value || "#07080b";
+            const colorLight = document.getElementById('genColorLight').value || "#ffffff";
+
+            renderQrCode(payload, colorDark, colorLight);
+            showToast("បានបង្កើត QR Code ដោយជោគជ័យ!");
+        }
+
+        function renderQrCode(text, darkColor, lightColor) {
+            const container = document.getElementById('generatedQrCanvas');
+            container.innerHTML = '';
+            generatedQrInstance = new QRCode(container, {
+                text: text,
+                width: 200,
+                height: 200,
+                colorDark: darkColor,
+                colorLight: lightColor,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            container.dataset.payload = text;
+        }
+
+        function downloadGeneratedQr() {
+            const canvasWrapper = document.getElementById('generatedQrCanvas');
+            const img = canvasWrapper.querySelector('img') || canvasWrapper.querySelector('canvas');
+            if (!img) return;
+
+            let dataUrl = img.src;
+            if (img.tagName.toLowerCase() === 'canvas') {
+                dataUrl = img.toDataURL('image/png');
+            }
+
+            const link = document.createElement('a');
+            link.download = `QR_Master_${Date.now()}.png`;
+            link.href = dataUrl;
+            link.click();
+            showToast("បានទាញយករូបភាព QR Code ជា PNG");
+        }
+
+        function copyGeneratedQrContent() {
+            const payload = document.getElementById('generatedQrCanvas').dataset.payload || '';
+            if (payload) {
+                executeClipboardCopy(payload);
+                showToast("បានចម្លងទិន្នន័យ QR Code!");
+            }
+        }
+
+        // ================= UTILITIES =================
+        function executeClipboardCopy(text) {
+            if (!text) return;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            tempInput.style.position = 'fixed';
+            tempInput.style.left = '-9999px';
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+        }
+
+        function showToast(message, type = "success") {
+            const toast = document.getElementById('toastBox');
+            const msg = document.getElementById('toastMessage');
+            const icon = document.getElementById('toastIcon');
+
+            msg.innerText = message;
+            if (type === "warning") {
+                icon.className = "fa-solid fa-triangle-exclamation text-amber-400 text-sm";
+            } else {
+                icon.className = "fa-solid fa-circle-check text-gold-400 text-sm";
+            }
+
+            toast.classList.remove('translate-x-32', 'opacity-0');
+            toast.classList.add('translate-x-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-x-0', 'opacity-100');
+                toast.classList.add('translate-x-32', 'opacity-0');
+            }, 3000);
+        }
+
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            const icon = document.getElementById('soundIcon');
+            icon.className = isSoundEnabled ? "fa-solid fa-volume-high text-sm" : "fa-solid fa-volume-xmark text-sm text-slate-500";
+            showToast(isSoundEnabled ? "សំឡេង Beep៖ បើក (ON)" : "សំឡេង Beep៖ បិទ (OFF)");
+        }
+
+        function toggleVibration() {
+            isVibeEnabled = !isVibeEnabled;
+            const icon = document.getElementById('vibeIcon');
+            icon.className = isVibeEnabled ? "fa-solid fa-mobile-screen text-sm" : "fa-solid fa-mobile-screen-button text-sm text-slate-500";
+            showToast(isVibeEnabled ? "រំញ័រ៖ បើក (ON)" : "រំញ័រ៖ បិទ (OFF)");
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>
